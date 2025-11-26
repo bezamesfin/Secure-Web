@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Customers</title>
+
+  <style>
+    body {
+      background: #f4f6f9;
+      
+    }
+    .container {
+      max-width: 900px;
+      margin: 30px auto;
+    }
+    .btn-toggle {
+      padding: 10px 16px;
+      background: #000000;
+      color: #fff;
+      border: none;
+      border-radius: 3px;
+      margin-bottom: 20px;
+    }
+  
+    /* ---- FORM CARD ---- */
+    .form-card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 3px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      display: none;          /* hidden by default */
+    }
+
+    .form-card h3 {
+      margin-top: 0;
+      font-size: 18px;
+      color: #222;
+      margin-bottom: 12px;
+    }
+
+    .form-group { margin-bottom: 14px; }
+    .form-group label { display: block; margin-bottom: 6px; }
+
+    input, select {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 3px;
+      font-size: 14px;
+    }
+
+    .btn-submit {
+      padding: 10px 14px;
+      background: #000000;
+      border: none;
+      color: #fff;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+
+    /* ---- TABLE STYLING ---- */
+    .table-wrap {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+    }
+
+    table.simple {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    table.simple th,
+    table.simple td {
+      padding: 12px 10px;
+      border-bottom: 1px solid #e6e9ef;
+      font-size: 14px;
+      text-align: left;
+    }
+
+    table.simple thead {
+      background: #f4f6fb;
+    }
+
+    .btn-view {
+      padding: 6px 10px;
+      background: #000000;
+      border-radius: 6px;
+      color: #ffffff;
+      text-decoration: none;
+      cursor: pointer;
+    }
+    .modal-bg {
+    display: none;                      /* THIS hides the modal initially */
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);        /* dim background */
+    justify-content: center;            /* center modal horizontally */
+    align-items: center;                /* center vertically */
+    z-index: 9999;                      /* above page */
+}
+
+/* The popup box */
+.modal-box {
+    background: white;
+    padding: 20px;
+    width: 350px;
+    border-radius: 10px;
+    position: relative;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+}
+
+/* Close button */
+.close-btn {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    cursor: pointer;
+    font-size: 22px;
+    font-weight: bold;
+}
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- Toggle button -->
+   <div style="margin-right: auto;margin-bottom: 20 px;">
+  <button class="btn-toggle" onclick="window.location.href='/dashboard/superadmin'">Orders</button>
+  <button class="btn-toggle" onclick="window.location.href='/products'">Products</button>
+  <button class="btn-toggle" onclick="window.location.href='/admins'">Administrators</button>
+  <button class="btn-toggle" onclick="window.location.href='/shoppers'">Shoppers</button>
+    <button class="btn-toggle" onclick="window.location.href='/logout'">Logout</button>
+  </div>
+
+<div style="margin-top: 20px;" >
+  <button class="btn-toggle" onclick="showForm()">Add New Customer</button>
+  <button class="btn-toggle" onclick="showTable()" style="display:none;" id="backBtn">Back to Customers</button>
+
+  <!-- === CREATE ORDER FORM === -->
+  <div class="form-card" id="orderForm">
+    <h3>Register New customer</h3>
+
+    <form action="/shoppers" method="POST">
+
+      <div class="form-group">
+        <label>Customer Name</label>
+        <input type="text" name="customerName" required>
+      </div>
+
+        <div class="form-group">
+          <label>Customer ID</label>
+          <input type="number" name="customerId" required>
+        </div>
+         <div class="form-group">
+          <label>Customer Email</label>
+          <input type="text" name="email" required>
+        </div>
+
+      <button class="btn-submit" type="submit">Add Customer</button>
+    </form>
+  </div>
+  <!-- This is a pop up modal used to edit data-->
+   <div id="orderModal" class="modal-bg">
+    <div class="modal-box">
+        <span class="close-btn" onclick="closeModal()">x</span>
+        <h3 id="madalTitle">Edit Customer</h3>
+    <form id="modalForm" method="POST">
+      <div class="form-group">
+        <label>Customer Name</label> 
+        <input type="text" name="customerName" id="modalItem" required>
+      </div>
+        <div class="form-group">
+          <label>Customer ID</label>
+          <input type="number" name="customerId" id="modalItemId" required>
+        </div>
+         <div class="form-group">
+          <label>Customer Email</label>
+          <input type="text" name="email" id="modalEmail" required>
+        </div>
+      <button class="btn-submit" type="submit" id="modalBtn">Edit Customer</button>
+    </form>
+    </div>
+    </div>
+
+
+
+  <!-- === TABLE === -->
+  <div class="table-wrap" id="tableSection">
+    <h2>Customers</h2>
+
+    <table class="simple">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Customer Name</th>
+          <th>Customer Email</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+
+      <tbody>
+   <%if (customers && customers.length >0){%>
+    <% customers.forEach(customer => {%>
+            <tr>
+              <td><%= customer.customerId %></td>
+              <td><%= customer.customerName %></td>
+              <td><%= customer.email %></td>
+              <td>
+                <button type="button" class="btn-view" onclick="editCustomer('<%= customer._id%>',
+                '<%= customer.customerName.replace(/'/g, '\\\'') %>',
+                '<%= customer.customerId%>',
+                '<%= customer.email%>')">
+                Edit
+            </button>
+                <a class="btn-view" href="/shoppers/<%= customer._id%>/delete">Delete</a>
+              </td>
+            </tr>
+<%})%>
+<%} else { %>
+          <tr>
+            <td colspan="4" style="text-align:center; padding:14px; color:#666;">
+              No Customers found.
+            </td>
+          </tr>
+          <%}%>
+
+      </tbody>
+
+    </table>
+  </div>
+</div>
+</div>
+
+
+<!-- TOGGLE SCRIPT -->
+<script>
+  function showForm() {
+    document.getElementById("orderForm").style.display = "block";
+    document.getElementById("tableSection").style.display = "none";
+    document.getElementById("backBtn").style.display = "inline-block";
+  }
+
+  function showTable() {
+    document.getElementById("orderForm").style.display = "none";
+    document.getElementById("tableSection").style.display = "block";
+    document.getElementById("backBtn").style.display = "none";
+  }
+  function editCustomer(id, customerName, customerId, email){ 
+    document.getElementById("modalItem").value = customerName
+    document.getElementById("modalItemId").value = customerId
+    document.getElementById("modalEmail").value = email
+    
+    document.getElementById("modalForm").action = "/shoppers/" +id+"?_method=put";
+    document.getElementById("orderModal").style.display = "flex";
+
+  }
+    function closeModal(){ 
+    document.getElementById("orderModal").style.display = "none";
+
+  }
+</script>
+
+</body>
+</html>
