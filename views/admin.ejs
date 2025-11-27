@@ -164,7 +164,7 @@
         </div>
          <div class="form-group">
           <label>Password</label>
-          <input type="text" name="password" required>
+          <input type="text" name="password" id="password" onclick="generatorPassword()">
         </div>
     
 
@@ -191,7 +191,7 @@
         </div>
          <div class="form-group">
           <label>Password</label>
-          <input type="text" name="password" id="modalpass" required>
+          <input type="text" name="password" id="modalpass" onclick="generatorPasswordModal()">
         </div>
       <button class="btn-submit" type="submit" id="modalBtn">Update Profile</button>
     </form>
@@ -272,6 +272,41 @@
     
     document.getElementById("modalForm").action = "/admins/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
+
+  }
+  function generatorPassword(){ 
+  console.log("got to generation")
+    const input=document.getElementById("password")
+    
+    //if (input.value.trim() !=="") return;
+    const length=6
+    const chars= 'abcdefghijklmnopqrstuvwxyz123456789'
+    let password= ''
+    for(let i=0; i<length; i++){
+      password += chars.charAt(Math.floor(Math.random()*chars.length))
+    }
+      console.log(password)
+
+    input.value=password;
+    input.readOnly=true;
+    
+
+  }
+  function generatorPasswordModal(){ 
+  console.log("got to generation")
+    const input=document.getElementById("modalpass")
+    input.value=''
+    const length=6
+    const chars= 'abcdefghijklmnopqrstuvwxyz123456789'
+    let password= ''
+    for(let i=0; i<length; i++){
+      password += chars.charAt(Math.floor(Math.random()*chars.length))
+    }
+      console.log(password)
+
+    input.value=password;
+    input.readOnly=true;
+    
 
   }
     function closeModal(){ 

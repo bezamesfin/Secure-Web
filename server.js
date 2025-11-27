@@ -34,8 +34,6 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public'))); // optional if you add assets
 
 
-
-
 app.use(methodOverride('_method'));
 app.use(session({
   secret: 'no-security-secret',
@@ -58,7 +56,7 @@ app.get("/login", (req, res) => {
 app.post("/login", async (req,res) =>{
     try{
    // const {adminName, password} = req.body;
-    console.log(req.body)
+ 
     //console.log(req.body.password)
     const user = await Admin.findOne({adminName: req.body.username, password: req.body.password})
     if (!user) return res.render ("login", {error: "Invalid username/password"})
@@ -97,34 +95,43 @@ app.get("/dashboard/admin", async (req,res) =>{
     //const role= req.cookies.role || "guest";
     
 })
-//Add orders
-app.post("/orders", async (req, res) =>{
-    try{
-    const { item, itemId, price } = req.body
-    await Order.create({item,itemId,price});
-    const orders = await Order.find().lean();
-    res.render("superadmin-dash", { orders });
-    }
-    catch (error){
-       res.send("Error loading orders")
-    }
 
-});
-//Edit orders
+//Edit orders for superadmin
 app.put("/orders/:id", async (req, res) =>{
-    const { item, itemId, price } = req.body
-    await Order.findByIdAndUpdate(req.params.id, {item,itemId,price});
+    const { customerId, productId,productName, quantity, status } = req.body
+    await Order.findByIdAndUpdate(req.params.id, {customerId,productId,productName,quantity,status});
     const orders = await Order.find().lean();
      res.render("superadmin-dash", { orders });
 
 });
-//delete orders
+//edit order for admin
+app.put("/ordersAdmin/:id", async (req, res) =>{
+    const { customerId, productId,productName, quantity, status } = req.body
+    await Order.findByIdAndUpdate(req.params.id, {customerId,productId,productName,quantity,status});
+    const orders = await Order.find().lean();
+     res.render("admin-dash", { orders });
+
+});
+
+//delete orders for superadmin
 app.get("/orders/:id/delete", async (req, res) =>{
     try{
         
     await Order.findByIdAndDelete (req.params.id);
     const orders = await Order.find().lean();
      res.render("superadmin-dash", { orders });
+    }
+    catch(err){
+   res.send("Error Deleting Order")
+    }
+});
+// delete route for admin
+app.get("/ordersAdmin/:id/delete", async (req, res) =>{
+    try{
+        
+    await Order.findByIdAndDelete (req.params.id);
+    const orders = await Order.find().lean();
+     res.render("admin-dash", { orders });
     }
     catch(err){
    res.send("Error Deleting Order")
@@ -211,7 +218,7 @@ app.post("/admins", async (req, res) =>{
 app.put("/admins/:id", async (req, res) =>{
     try{
    const { adminName, adminId, role, password } = req.body
-   console.log(req.body)
+
     await Admin.findByIdAndUpdate(req.params.id, {adminName,adminId,role,password});
     const admins = await Admin.find().lean();
      res.render("admin", { admins });
@@ -250,21 +257,23 @@ app.get("/shoppers", async (req,res) =>{
 // Add new Customer
 app.post("/shoppers", async (req, res) =>{
     try{
-    const { customerName, customerId, email } = req.body
-    await Shopper.create({customerName,customerId,email});
+    const { customerName, customerId, email, address, password } = req.body
+    await Shopper.create({customerName,customerId,email,address,password});
     const customers = await Shopper.find().lean();
     res.render("shopper", { customers });
     }
     catch (error){
-       res.send("Error loading orders")
+      
+        console.log(error)
+       res.send("Error loading Customers")
     }
 
 });
 //Edit customers
 app.put("/shoppers/:id", async (req, res) =>{
     try{
-   const { customerName, customerId, email } = req.body
-    await Shopper.findByIdAndUpdate(req.params.id, {customerName,customerId,email});
+   const { customerName, customerId, email, address, password} = req.body
+    await Shopper.findByIdAndUpdate(req.params.id, {customerName,customerId,email,address,password});
     const customers = await Shopper.find().lean();
      res.render("shopper", { customers });
     }
@@ -274,7 +283,7 @@ app.put("/shoppers/:id", async (req, res) =>{
  
 
 });
-//Delete admins
+//Delete customers
 app.get("/shoppers/:id/delete", async (req, res) =>{
     try{
     await Shopper.findByIdAndDelete (req.params.id);
@@ -285,9 +294,122 @@ app.get("/shoppers/:id/delete", async (req, res) =>{
    res.send("Error Deleting Order")
     }
 });
+app.get("/customer/login", (req, res) => {
+  res.render("customer-login", { error: null });
+});
+
+//get customer dashboard
+app.get("/customer/dashboard", async (req,res) =>{
+    try{
+        const products = await Product.find({});
+        const orders = await Order.aggregate([
+            {
+                $match: {
+                    customerId: new mongoose.Types.ObjectId(req.session.user.id)
+                }
+            },
+            {
+            $lookup:{
+                from:"products",
+                localField:"productId",
+                foreignField: "_id",
+                as: "productData"
+
+            }
+        },
+        {
+            $unwind: "$productData"
+        },
+        {
+            $project:{
+                productName: "$productData.itemName",
+                quantity: 1,
+                status:1
+            
+            }
+        }
+        ]);
+        const customer= req.session.user;
+        res.render("customers", {products,orders,customer})
+    }
+    catch (error){
+        console.log(error)
+        res.send("Error loading orders")
+
+    }
+    //const role= req.cookies.role || "guest";
+    
+});
+app.post("/customer/login", async (req,res) =>{
+    try{
+   // const {adminName, password} = req.body;
+
+    //console.log(req.body.password)
+    const shopper = await Shopper.findOne({customerName: req.body.username, password: req.body.password})
+    if (!shopper) return res.render ("customer-login", {error: "Invalid username/password"})
+    req.session.user={id:shopper._id,
+                     name: shopper.customerName,
+                     email: shopper.email,
+                     address: shopper.address};
+    res.cookie("role", shopper.role, {httpOnly: false});
+    res.redirect("/customer/dashboard");
+    
+
+    }
+    catch(err){
+        console.log(err)
+    }
+
+});
+
+app.post("/customer/order", async (req,res) =>{
+    try{
+       
+        await Order.create({
+            customerId: req.session.user.id,
+            productId: req.body.productId,
+            productName: req.body.productName,
+            quantity: req.body.quantity
+        })
+     res.redirect("/customer/dashboard")
+
+    }
+    catch(err){
+        console.log(err)
+    }
+
+});
+
+app.put("/profile/:id", async (req, res) =>{
+    try{
+    const test =req.params.id.trim();
+    const custId = new mongoose.Types.ObjectId(test); 
+    const{email,address}= req.body
+    await Shopper.findByIdAndUpdate(custId, {email,address});
+    const updateCust = await Shopper.findById(custId);
+    req.session.user={id:updateCust._id,
+                     name: updateCust.customerName,
+                     email: updateCust.email,
+                     address: updateCust.address};
+
+   res.redirect("/customer/dashboard")
+    }
+    catch(error){
+        res.send("Error loading orders")
+    }
+ 
+
+});
+
 app.get("/logout", async (req,res) =>{
      res.clearCookie("connect.sid")
      res.redirect("/login")
+    //const role= req.cookies.role || "guest";
+    
+});
+app.get("/customer/logout", async (req,res) =>{
+     res.clearCookie("connect.sid")
+     res.redirect("/customer/login")
     //const role= req.cookies.role || "guest";
     
 })

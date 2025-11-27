@@ -140,51 +140,35 @@
   </div>
 
 <div style="margin-top: 20px;" >
-  <button class="btn-toggle" onclick="showForm()">Add New Order</button>
-  <button class="btn-toggle" onclick="showTable()" style="display:none;" id="backBtn">Back to Orders</button>
+ 
 
-  <!-- === CREATE ORDER FORM === -->
-  <div class="form-card" id="orderForm">
-    <h3>Create New Order</h3>
+  
 
-    <form action="/orders" method="POST">
-
-      <div class="form-group">
-        <label>Order Name</label>
-        <input type="text" name="item" required>
-      </div>
-
-        <div class="form-group">
-          <label>Order ID</label>
-          <input type="number" name="itemId" required>
-        </div>
-         <div class="form-group">
-          <label>Price</label>
-          <input type="number" name="price" required>
-        </div>
-    
-
-      <button class="btn-submit" type="submit">Add Order</button>
-    </form>
-  </div>
   <!-- This is a pop up modal used to edit data-->
    <div id="orderModal" class="modal-bg">
     <div class="modal-box">
         <span class="close-btn" onclick="closeModal()">x</span>
         <h3 id="madalTitle">Edit Order</h3>
     <form id="modalForm" method="POST">
-      <div class="form-group">
-        <label>Order Name</label>
-        <input type="text" name="item" id="modalItem" required>
+      <div class="form-group">  
+        <label>Customer ID</label>
+        <input type="text" name="customerId" id="modalItem" readonly>
       </div>
-
         <div class="form-group">
-          <label>Order ID</label>
-          <input type="number" name="itemId" id="modalItemId" required>
+          <label>Product ID</label>
+          <input type="text" name="productId" id="modalItemId" readonly>
+        </div>
+        <div class="form-group">
+          <label>Product Name</label>
+          <input type="text" name="productName" id="modalItemName" readonly>
+        </div>
+        <div class="form-group">
+          <label>Quantity</label>
+          <input type="number" name="quantity" id="modalQuantity" readonly>
         </div>
          <div class="form-group">
-          <label>Price</label>
-          <input type="number" name="price" id="modalPrice" required>
+          <label>Status</label>
+          <input type="text" name="status" id="modalStatus" required>
         </div>
       <button class="btn-submit" type="submit" id="modalBtn">Edit Order</button>
     </form>
@@ -200,9 +184,11 @@
     <table class="simple">
       <thead>
         <tr>
-          <th>ID</th>
-          <th>Order Name</th>
-          <th>Price</th>
+          <th>Customer ID</th>
+          <th>Product ID</th>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -211,14 +197,18 @@
    <%if (orders && orders.length >0){%>
     <% orders.forEach(order => {%>
             <tr>
-              <td><%= order.itemId %></td>
-              <td><%= order.item %></td>
-              <td><%= order.price %></td>
+              <td><%= order.customerId %></td>
+              <td><%= order.productId %></td>
+              <td><%= order.productName %></td>
+              <td><%= order.quantity %></td>
+              <td><%= order.status %></td>
               <td>
                 <button type="button" class="btn-view" onclick="editOrder('<%= order._id%>',
-                '<%= order.item.replace(/'/g, '\\\'') %>',
-                '<%= order.itemId%>',
-                '<%= order.price%>')">
+                '<%= order.customerId %>',
+                '<%= order.productId %>',
+                '<%= order.productName %>',
+                '<%= order.quantity%>',
+                '<%= order.status.replace(/'/g, '\\\'') %>')">
                 Edit
             </button>
                 <a class="btn-view" href="/orders/<%= order._id%>/delete">Delete</a>
@@ -254,12 +244,14 @@
     document.getElementById("tableSection").style.display = "block";
     document.getElementById("backBtn").style.display = "none";
   }
-  function editOrder(id, item, itemId, price){ 
-    console.log("editOrder called", id, item, itemId, price);
-    document.getElementById("modalItem").value = item
-    document.getElementById("modalItemId").value = itemId
-    document.getElementById("modalPrice").value = price
-    
+  function editOrder(id, customerId, productId,productName, quantity, status){ 
+
+    document.getElementById("modalItem").value = customerId
+    document.getElementById("modalItemId").value = productId
+    document.getElementById("modalItemName").value = productName
+    document.getElementById("modalQuantity").value = quantity
+    document.getElementById("modalStatus").value = status
+
     document.getElementById("modalForm").action = "/orders/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
 
