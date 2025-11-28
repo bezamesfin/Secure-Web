@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const session = require('express-session');
 const methodOverride = require('method-override');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const Admin = require("./models/admin");
 const Shopper = require("./models/shopper");
 const Product = require("./models/product");
@@ -35,11 +36,12 @@ app.use(express.static(path.join(__dirname, 'public'))); // optional if you add 
 
 
 app.use(methodOverride('_method'));
+app.use(cookieParser());
 app.use(session({
   secret: 'no-security-secret',
   resave: false,
-  saveUninitialized: true
-  //cookie: {httpOnly: false, secure: false} 
+  saveUninitialized: true,
+  cookie: {httpOnly: false, secure: false} 
 }));
 
 /* This redirects the root webpage access to login */
@@ -55,12 +57,10 @@ app.get("/login", (req, res) => {
 /* This is responsible for handling login process and roles*/
 app.post("/login", async (req,res) =>{
     try{
-   // const {adminName, password} = req.body;
  
-    //console.log(req.body.password)
     const user = await Admin.findOne({adminName: req.body.username, password: req.body.password})
     if (!user) return res.render ("login", {error: "Invalid username/password"})
-    res.cookie("role", user.role, {httpOnly: false});
+    res.cookie("role", user.role);
     const orders = await Order.find().lean();
     if(user.role === "superadmin") return res.render("superadmin-dash", {orders});
     if(user.role === "admin") return res.render("admin-dash", {orders});
@@ -78,9 +78,16 @@ app.post("/login", async (req,res) =>{
 
 /* This displays the superadmin dashboard*/
 app.get("/dashboard/superadmin", async (req,res) =>{
-    //const role= req.cookies.role || "guest";
+    if (req.cookies.role === "superadmin"){
+         //const role= req.cookies.role || "guest";
     const orders = await Order.find().lean();
     res.render("superadmin-dash", { orders });
+    }
+
+    else{
+        return res.status(403).send("AccessDenied")
+    }
+   
     
 })
 app.get("/dashboard/admin", async (req,res) =>{
@@ -191,11 +198,19 @@ app.get("/products/:id/delete", async (req, res) =>{
 //get admin info
 app.get("/admins", async (req,res) =>{
     try{
+         if (req.cookies.role === "superadmin"){
+        
         const admins = await Admin.find().lean();
         res.render("admin",{ admins })
     }
+    else{
+        return res.status(403).send("Access denied")
+    }
+}
     catch (error){
-        res.send("Error loading orders")
+        console.log(req)
+        console.log(error)
+        res.send("Error loading admins")
 
     }
     //const role= req.cookies.role || "guest";
@@ -351,7 +366,8 @@ app.post("/customer/login", async (req,res) =>{
                      name: shopper.customerName,
                      email: shopper.email,
                      address: shopper.address};
-    res.cookie("role", shopper.role, {httpOnly: false});
+    
+    res.cookie("role", "customer");
     res.redirect("/customer/dashboard");
     
 
