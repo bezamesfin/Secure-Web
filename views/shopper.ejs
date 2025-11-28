@@ -289,14 +289,16 @@
     document.getElementById("orderModal").style.display = "none";
 
   }
+    /*
+  The generatorPassword and generatorPasswordModal functions are used to generate password for customers, Initially 
+  they were using weak generation algorithm.
     
+    */
 function generatorPassword(){ 
-  console.log("got to generation")
+ 
     const input=document.getElementById("password")
-    
-  
-    const length=6
-    const chars= 'abcdefghijklmnopqrstuvwxyz123456789'
+    const length=6 // The length for the week algorithm was only 6 making the password shorter
+    const chars= 'abcdefghijklmnopqrstuvwxyz123456789' // the character set used for generating the password was smaller 
     let password= ''
     for(let i=0; i<length; i++){
       password += chars.charAt(Math.floor(Math.random()*chars.length))
@@ -309,7 +311,7 @@ function generatorPassword(){
 
   }
   function generatorPasswordModal(){ 
-  console.log("got to generation")
+ 
     const input=document.getElementById("modalPassword")
     input.value=''
     const length=6

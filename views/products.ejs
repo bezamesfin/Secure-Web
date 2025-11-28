@@ -220,7 +220,7 @@
     <% products.forEach(product => {%>
             <tr>
               <td><%= product.itemId %></td>
-              <td><%= product.itemName %></td>
+              <td><%- product.itemName %></td>
               <td><%= product.price %></td>
               <td><%= product.quantity %></td>
               <td>
