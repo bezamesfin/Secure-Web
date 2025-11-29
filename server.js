@@ -4,6 +4,7 @@ const session = require('express-session');
 const methodOverride = require('method-override');
 const path = require('path');
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const Admin = require("./models/admin");
 const Shopper = require("./models/shopper");
 const Product = require("./models/product");
@@ -58,9 +59,15 @@ app.get("/login", (req, res) => {
 /* This is responsible for handling login process and roles*/
 app.post("/login", async (req,res) =>{
     try{
- 
-    const user = await Admin.findOne({adminName: req.body.username, password: req.body.password})
+    
+   const {username,password}= req.body
+    const user = await Admin.findOne({adminName:username})
     if (!user) return res.render ("login", {error: "Invalid username/password"})
+ 
+    const match=await bcrypt.compare(password, user.password)
+
+    if (!match) return res.render ("login", {error: "Invalid username/password"})
+    
     res.cookie("role", user.role); // kept this for test purpose only
     req.session.user={UserId:user._id, role:user.role}
                         console.log(req.session.user)
@@ -208,12 +215,16 @@ app.get("/admins",isLogedIn,roleAuth("superadmin"), async (req,res) =>{
 app.post("/admins", isLogedIn, roleAuth("superadmin"), async (req, res) =>{
     try{
     const roles =req.session.user.role;
-    const { adminName, adminId, role, password } = req.body
-    await Admin.create({adminName,adminId,role,password});
+    const { adminName, adminId, role, password } = req.body    
+    const saltRounds=10
+    const hash= await bcrypt.hash(password, saltRounds)
+    await Admin.create({adminName,adminId,role,password:hash});
+
     const admins = await Admin.find().lean();
     res.render("admin", { admins,roles });
     }
     catch (error){
+        console.log(error)
        res.send("Error loading orders")
     }
 
@@ -265,7 +276,9 @@ app.post("/shoppers",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
     const role =req.session.user.role;
     const { customerName, customerId, email, address, password } = req.body
-    await Shopper.create({customerName,customerId,email,address,password});
+    const saltRounds=10
+    const hash= await bcrypt.hash(password, saltRounds)
+    await Shopper.create({customerName,customerId,email,address,password:hash});
     const customers = await Shopper.find().lean();
     res.render("shopper", { customers,role });
     }
@@ -351,12 +364,14 @@ app.get("/customer/dashboard",isLogedIn,roleAuth("customer"), async (req,res) =>
 });
 app.post("/customer/login", async (req,res) =>{
     try{
-   // const {adminName, password} = req.body;
+   const {username, password} = req.body;
 
     //console.log(req.body.password)
-    const shopper = await Shopper.findOne({customerName: req.body.username, password: req.body.password})
+    const shopper = await Shopper.findOne({customerName: username})
     if (!shopper) return res.render ("customer-login", {error: "Invalid username/password"})
-    console.log(shopper)
+     
+    const match=await bcrypt.compare(password,shopper.password)
+    if(!match) return res.render ("customer-login", {error: "Invalid username/password"})
     req.session.user={id:shopper._id,
                      name: shopper.customerName,
                      email: shopper.email,
