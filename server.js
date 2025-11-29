@@ -8,6 +8,7 @@ const Admin = require("./models/admin");
 const Shopper = require("./models/shopper");
 const Product = require("./models/product");
 const Order = require("./models/order");
+const {isLogedIn, roleAuth} = require("./auth");
 const { error } = require('console');
 
 
@@ -41,7 +42,7 @@ app.use(session({
   secret: 'no-security-secret',
   resave: false,
   saveUninitialized: true,
-  cookie: {httpOnly: false, secure: false} 
+  cookie: {httpOnly: true, maxAge: 2*60*1000} 
 }));
 
 /* This redirects the root webpage access to login */
@@ -60,10 +61,12 @@ app.post("/login", async (req,res) =>{
  
     const user = await Admin.findOne({adminName: req.body.username, password: req.body.password})
     if (!user) return res.render ("login", {error: "Invalid username/password"})
-    res.cookie("role", user.role);
-    const orders = await Order.find().lean();
-    if(user.role === "superadmin") return res.render("superadmin-dash", {orders});
-    if(user.role === "admin") return res.render("admin-dash", {orders});
+    res.cookie("role", user.role); // kept this for test purpose only
+    req.session.user={UserId:user._id, role:user.role}
+                        console.log(req.session.user)
+
+    if(user.role === "superadmin") return res.redirect("/dashboard/superadmin");
+    if(user.role === "admin") return res.redirect("/dashboard/admin");
     
 
     }
@@ -77,20 +80,14 @@ app.post("/login", async (req,res) =>{
 
 
 /* This displays the superadmin dashboard*/
-app.get("/dashboard/superadmin", async (req,res) =>{
-    if (req.cookies.role === "superadmin"){
-         //const role= req.cookies.role || "guest";
+app.get("/dashboard/superadmin", isLogedIn, roleAuth("superadmin"), async (req,res) =>{
+
     const orders = await Order.find().lean();
     res.render("superadmin-dash", { orders });
-    }
-
-    else{
-        return res.status(403).send("AccessDenied")
-    }
-   
+  
     
 })
-app.get("/dashboard/admin", async (req,res) =>{
+app.get("/dashboard/admin", isLogedIn, roleAuth("admin"), async (req,res) =>{
     try{
         const orders = await Order.find().lean();
         res.render("admin-dash",{ orders })
@@ -104,50 +101,42 @@ app.get("/dashboard/admin", async (req,res) =>{
 })
 
 //Edit orders for superadmin
-app.put("/orders/:id", async (req, res) =>{
+app.put("/orders/:id", isLogedIn, roleAuth(["superadmin","admin"]), async (req, res) =>{
     const { customerId, productId,productName, quantity, status } = req.body
     await Order.findByIdAndUpdate(req.params.id, {customerId,productId,productName,quantity,status});
     const orders = await Order.find().lean();
+    if (req.session.user.role === "superadmin"){
      res.render("superadmin-dash", { orders });
-
-});
-//edit order for admin
-app.put("/ordersAdmin/:id", async (req, res) =>{
-    const { customerId, productId,productName, quantity, status } = req.body
-    await Order.findByIdAndUpdate(req.params.id, {customerId,productId,productName,quantity,status});
-    const orders = await Order.find().lean();
-     res.render("admin-dash", { orders });
+    }
+    else{
+        res.render("admin-dash", { orders });
+    }
 
 });
 
 //delete orders for superadmin
-app.get("/orders/:id/delete", async (req, res) =>{
+app.get("/orders/:id/delete", isLogedIn, roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
         
     await Order.findByIdAndDelete (req.params.id);
     const orders = await Order.find().lean();
+    if (req.session.user.role === "superadmin"){
      res.render("superadmin-dash", { orders });
     }
-    catch(err){
-   res.send("Error Deleting Order")
+    else {
+        res.render("admin-dash", { orders });
     }
-});
-// delete route for admin
-app.get("/ordersAdmin/:id/delete", async (req, res) =>{
-    try{
-        
-    await Order.findByIdAndDelete (req.params.id);
-    const orders = await Order.find().lean();
-     res.render("admin-dash", { orders });
     }
     catch(err){
    res.send("Error Deleting Order")
     }
 });
-app.get("/products", async (req,res) =>{
+
+app.get("/products", isLogedIn,roleAuth(["superadmin","admin"]), async (req,res) =>{
     try{
+        const role =req.session.user.role;
         const products = await Product.find().lean();
-        res.render("products",{ products })
+        res.render("products",{ products,role })
     }
     catch (error){
         res.send("Error loading orders")
@@ -157,12 +146,13 @@ app.get("/products", async (req,res) =>{
     
 })
 // Add new product
-app.post("/products", async (req, res) =>{
+app.post("/products", isLogedIn,roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
+    const role =req.session.user.role;
     const { itemName, itemId, price, quantity } = req.body
     await Product.create({itemName,itemId,price,quantity});
     const products = await Product.find().lean();
-    res.render("products", { products });
+    res.render("products", { products, role});
     }
     catch (error){
        res.send("Error loading orders")
@@ -170,12 +160,13 @@ app.post("/products", async (req, res) =>{
 
 });
 //Edit products
-app.put("/products/:id", async (req, res) =>{
+app.put("/products/:id", isLogedIn,roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
+    const role =req.session.user.role;
    const { itemName, itemId, price, quantity } = req.body
     await Product.findByIdAndUpdate(req.params.id, {itemName,itemId,price,quantity});
     const products = await Product.find().lean();
-     res.render("products", { products });
+     res.render("products", { products,role });
     }
     catch(error){
         res.send("Error loading orders")
@@ -184,11 +175,12 @@ app.put("/products/:id", async (req, res) =>{
 
 });
 //Delete products
-app.get("/products/:id/delete", async (req, res) =>{
+app.get("/products/:id/delete", isLogedIn,roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
+    const role =req.session.user.role;
     await Product.findByIdAndDelete (req.params.id);
     const products = await Product.find().lean();
-     res.render("products", { products });
+     res.render("products", { products, role });
     }
     catch(err){
    res.send("Error Deleting Order")
@@ -196,16 +188,12 @@ app.get("/products/:id/delete", async (req, res) =>{
 });
 
 //get admin info
-app.get("/admins", async (req,res) =>{
+app.get("/admins",isLogedIn,roleAuth("superadmin"), async (req,res) =>{
     try{
-         if (req.cookies.role === "superadmin"){
-        
+        const roles =req.session.user.role;
         const admins = await Admin.find().lean();
-        res.render("admin",{ admins })
-    }
-    else{
-        return res.status(403).send("Access denied")
-    }
+        res.render("admin",{ admins,roles })
+
 }
     catch (error){
         console.log(req)
@@ -217,12 +205,13 @@ app.get("/admins", async (req,res) =>{
     
 })
 // Add new admin
-app.post("/admins", async (req, res) =>{
+app.post("/admins", isLogedIn, roleAuth("superadmin"), async (req, res) =>{
     try{
+    const roles =req.session.user.role;
     const { adminName, adminId, role, password } = req.body
     await Admin.create({adminName,adminId,role,password});
     const admins = await Admin.find().lean();
-    res.render("admin", { admins });
+    res.render("admin", { admins,roles });
     }
     catch (error){
        res.send("Error loading orders")
@@ -230,13 +219,13 @@ app.post("/admins", async (req, res) =>{
 
 });
 //Edit admins
-app.put("/admins/:id", async (req, res) =>{
+app.put("/admins/:id", isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+        const roles =req.session.user.role;
    const { adminName, adminId, role, password } = req.body
-
     await Admin.findByIdAndUpdate(req.params.id, {adminName,adminId,role,password});
     const admins = await Admin.find().lean();
-     res.render("admin", { admins });
+     res.render("admin", { admins, roles});
     }
     catch(error){
         res.send("Error loading orders")
@@ -245,11 +234,12 @@ app.put("/admins/:id", async (req, res) =>{
 
 });
 //Delete admins
-app.get("/admins/:id/delete", async (req, res) =>{
+app.get("/admins/:id/delete", isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+        const roles =req.session.user.role;
     await Admin.findByIdAndDelete (req.params.id);
     const admins = await Admin.find().lean();
-     res.render("admin", { admins });
+     res.render("admin", { admins,roles });
     }
     catch(err){
    res.send("Error Deleting Order")
@@ -257,10 +247,11 @@ app.get("/admins/:id/delete", async (req, res) =>{
 });
 
 //get customer dashboard
-app.get("/shoppers", async (req,res) =>{
+app.get("/shoppers",isLogedIn,roleAuth("superadmin"), async (req,res) =>{
     try{
+        const role =req.session.user.role;
         const customers = await Shopper.find().lean();
-        res.render("shopper",{ customers })
+        res.render("shopper",{ customers, role })
     }
     catch (error){
         res.send("Error loading orders")
@@ -270,12 +261,13 @@ app.get("/shoppers", async (req,res) =>{
     
 })
 // Add new Customer
-app.post("/shoppers", async (req, res) =>{
+app.post("/shoppers",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+    const role =req.session.user.role;
     const { customerName, customerId, email, address, password } = req.body
     await Shopper.create({customerName,customerId,email,address,password});
     const customers = await Shopper.find().lean();
-    res.render("shopper", { customers });
+    res.render("shopper", { customers,role });
     }
     catch (error){
       
@@ -285,12 +277,13 @@ app.post("/shoppers", async (req, res) =>{
 
 });
 //Edit customers
-app.put("/shoppers/:id", async (req, res) =>{
+app.put("/shoppers/:id",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+    const role =req.session.user.role;
    const { customerName, customerId, email, address, password} = req.body
     await Shopper.findByIdAndUpdate(req.params.id, {customerName,customerId,email,address,password});
     const customers = await Shopper.find().lean();
-     res.render("shopper", { customers });
+     res.render("shopper", { customers,role });
     }
     catch(error){
         res.send("Error loading orders")
@@ -299,11 +292,12 @@ app.put("/shoppers/:id", async (req, res) =>{
 
 });
 //Delete customers
-app.get("/shoppers/:id/delete", async (req, res) =>{
+app.get("/shoppers/:id/delete",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+    const role =req.session.user.role;
     await Shopper.findByIdAndDelete (req.params.id);
     const customers = await Shopper.find().lean();
-     res.render("shopper", { customers });
+     res.render("shopper", { customers,role });
     }
     catch(err){
    res.send("Error Deleting Order")
@@ -314,7 +308,7 @@ app.get("/customer/login", (req, res) => {
 });
 
 //get customer dashboard
-app.get("/customer/dashboard", async (req,res) =>{
+app.get("/customer/dashboard",isLogedIn,roleAuth("customer"), async (req,res) =>{
     try{
         const products = await Product.find({});
         const orders = await Order.aggregate([
@@ -362,10 +356,13 @@ app.post("/customer/login", async (req,res) =>{
     //console.log(req.body.password)
     const shopper = await Shopper.findOne({customerName: req.body.username, password: req.body.password})
     if (!shopper) return res.render ("customer-login", {error: "Invalid username/password"})
+    console.log(shopper)
     req.session.user={id:shopper._id,
                      name: shopper.customerName,
                      email: shopper.email,
-                     address: shopper.address};
+                     address: shopper.address,
+                     role: shopper.role};
+                    console.log(req.session.user)
     
     res.cookie("role", "customer");
     res.redirect("/customer/dashboard");
@@ -378,7 +375,7 @@ app.post("/customer/login", async (req,res) =>{
 
 });
 
-app.post("/customer/order", async (req,res) =>{
+app.post("/customer/order",isLogedIn,roleAuth("customer"), async (req,res) =>{
     try{
        
         await Order.create({
@@ -396,7 +393,7 @@ app.post("/customer/order", async (req,res) =>{
 
 });
 
-app.put("/profile/:id", async (req, res) =>{
+app.put("/profile/:id", isLogedIn,roleAuth("customer"),async (req, res) =>{
     try{
     const test =req.params.id.trim();
     const custId = new mongoose.Types.ObjectId(test); 
@@ -406,11 +403,13 @@ app.put("/profile/:id", async (req, res) =>{
     req.session.user={id:updateCust._id,
                      name: updateCust.customerName,
                      email: updateCust.email,
-                     address: updateCust.address};
+                     address: updateCust.address,
+                     role: updateCust.role};
 
    res.redirect("/customer/dashboard")
     }
     catch(error){
+        
         res.send("Error loading orders")
     }
  
@@ -418,16 +417,26 @@ app.put("/profile/:id", async (req, res) =>{
 });
 
 app.get("/logout", async (req,res) =>{
-     res.clearCookie("connect.sid")
+    req.session.destroy(err =>{
+        if (err){
+            console.error(err)
+            return res.status(500).send("Error Logging out")
+        }
+    res.clearCookie("connect.sid")
      res.redirect("/login")
-    //const role= req.cookies.role || "guest";
-    
+    });
+  
 });
 app.get("/customer/logout", async (req,res) =>{
-     res.clearCookie("connect.sid")
+        req.session.destroy(err =>{
+        if (err){
+            console.error(err)
+            return res.status(500).send("Error Logging out")
+        }
+    res.clearCookie("connect.sid")
      res.redirect("/customer/login")
-    //const role= req.cookies.role || "guest";
-    
+    });
+
 })
 
 app.listen(3000, () => {

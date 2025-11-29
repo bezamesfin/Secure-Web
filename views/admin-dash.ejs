@@ -231,7 +231,7 @@
                 '<%= order.status.replace(/'/g, '\\\'') %>')">
                 Edit
             </button>
-                <a class="btn-view" href="/ordersAdmin/<%= order._id%>/delete">Delete</a>
+                <a class="btn-view" href="/orders/<%= order._id%>/delete">Delete</a>
               </td>
             </tr>
 <%})%>
@@ -272,7 +272,7 @@
     document.getElementById("modalQuantity").value = quantity
     document.getElementById("modalStatus").value = status
     
-    document.getElementById("modalForm").action = "/ordersAdmin/" +id+"?_method=put";
+    document.getElementById("modalForm").action = "/orders/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
 
   }

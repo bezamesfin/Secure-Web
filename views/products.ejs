@@ -132,10 +132,19 @@
 
   <!-- Toggle button -->
    <div style="margin-right: auto;margin-bottom: 20 px;">
+    
+  <% if( role === "superadmin"){ %>
   <button class="btn-toggle" onclick="window.location.href='/dashboard/superadmin'">Orders</button>
+    <%}%>
+ <% if( role === "admin"){ %>
+  <button class="btn-toggle" onclick="window.location.href='/dashboard/admin'">Orders</button>
+    <%}%>
   <button class="btn-toggle" onclick="window.location.href='/products'">Products</button>
+  <% if( role === "superadmin"){ %>
   <button class="btn-toggle" onclick="window.location.href='/admins'">Administrators</button>
   <button class="btn-toggle" onclick="window.location.href='/shoppers'">Shopers</button>
+  <%}%>
+
     <button class="btn-toggle" onclick="window.location.href='/logout'">Logout</button>
   </div>
 
@@ -220,7 +229,7 @@
     <% products.forEach(product => {%>
             <tr>
               <td><%= product.itemId %></td>
-              <td><%- product.itemName %></td>
+              <td><%= product.itemName %></td>
               <td><%= product.price %></td>
               <td><%= product.quantity %></td>
               <td>
