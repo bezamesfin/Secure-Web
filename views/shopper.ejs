@@ -201,10 +201,7 @@
           <label>Address</label>
           <input type="text" name="address" id="modalAddress" required>
         </div>
-         <div class="form-group">
-          <label>Password</label>
-          <input type="text" name="password" id="modalPassword" onclick="generatorPasswordModal()">
-        </div>
+
       <button class="btn-submit" type="submit" id="modalBtn">Edit Customer</button>
     </form>
     </div>
@@ -284,7 +281,7 @@
     document.getElementById("modalItemId").value = customerId
     document.getElementById("modalEmail").value = email
     document.getElementById("modalAddress").value = address
-    document.getElementById("modalPassword").value = password
+
   
     document.getElementById("modalForm").action = "/shoppers/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
@@ -302,11 +299,14 @@
 function generatorPassword(){ 
  
     const input=document.getElementById("password")
-    const length=6 // The length for the week algorithm was only 6 making the password shorter
-    const chars= 'abcdefghijklmnopqrstuvwxyz123456789' // the character set used for generating the password was smaller 
+    const length=8 // The length for the week algorithm was only 6 making the password shorter
+    const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password was smaller 
     let password= ''
+    const array= new Uint32Array(length)
+    window.crypto.getRandomValues(array)
     for(let i=0; i<length; i++){
-      password += chars.charAt(Math.floor(Math.random()*chars.length))
+
+      password += chars[array[i]% chars.length]
     }
       console.log(password)
 
@@ -319,11 +319,12 @@ function generatorPassword(){
  
     const input=document.getElementById("modalPassword")
     input.value=''
-    const length=6
-    const chars= 'abcdefghijklmnopqrstuvwxyz123456789'
+    const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password was smaller 
     let password= ''
+    const array= new Uint32Array(length)
+    window.crypto.getRandomValues(array)
     for(let i=0; i<length; i++){
-      password += chars.charAt(Math.floor(Math.random()*chars.length))
+      password += chars[array[i]% chars.length]
     }
       console.log(password)
 

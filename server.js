@@ -5,12 +5,15 @@ const methodOverride = require('method-override');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
+const rateLimit = require('express-rate-limit')
+const Joi=require('joi');
 const Admin = require("./models/admin");
 const Shopper = require("./models/shopper");
 const Product = require("./models/product");
 const Order = require("./models/order");
 const {isLogedIn, roleAuth} = require("./auth");
 const { error } = require('console');
+const loginTrial = rateLimit({max:3,windowMS: 5 * 60 * 1000,message:"Too many Login Attempt!"})
 
 
 const app = express();
@@ -43,12 +46,12 @@ app.use(session({
   secret: 'no-security-secret',
   resave: false,
   saveUninitialized: true,
-  cookie: {httpOnly: true, maxAge: 2*60*1000} 
+  cookie: {httpOnly: true, maxAge: 10*60*1000} 
 }));
 
 /* This redirects the root webpage access to login */
 app.get('/', (req, res) => {
-res.redirect('/login');
+res.redirect('/customer/login');
  
 });
 /* This displays the login page*/
@@ -57,8 +60,14 @@ app.get("/login", (req, res) => {
 });
 
 /* This is responsible for handling login process and roles*/
-app.post("/login", async (req,res) =>{
+app.post("/login",loginTrial, async (req,res) =>{
     try{
+     const signup=Joi.object({
+            username: Joi.string().alphanum().min(4).max(30).required(),
+            password: Joi.string().min(6).required()
+        })
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
     
    const {username,password}= req.body
     const user = await Admin.findOne({adminName:username})
@@ -155,6 +164,16 @@ app.get("/products", isLogedIn,roleAuth(["superadmin","admin"]), async (req,res)
 // Add new product
 app.post("/products", isLogedIn,roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
+
+    const signup=Joi.object({
+        itemName: Joi.string().pattern(/^[A-Za-z]+$/).max(30).required(),
+        itemId: Joi.number().integer().positive().required(),
+        price: Joi.number().positive().required(),
+        quantity: Joi.number().integer().positive().required()
+        })
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
     const role =req.session.user.role;
     const { itemName, itemId, price, quantity } = req.body
     await Product.create({itemName,itemId,price,quantity});
@@ -169,8 +188,17 @@ app.post("/products", isLogedIn,roleAuth(["superadmin","admin"]), async (req, re
 //Edit products
 app.put("/products/:id", isLogedIn,roleAuth(["superadmin","admin"]), async (req, res) =>{
     try{
+    const signup=Joi.object({
+        itemName: Joi.string().pattern(/^[A-Za-z]+$/).max(30).required(),
+        itemId: Joi.number().integer().positive().required(),
+        price: Joi.number().positive().required(),
+        quantity: Joi.number().integer().positive().required()
+        })
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
     const role =req.session.user.role;
-   const { itemName, itemId, price, quantity } = req.body
+    const { itemName, itemId, price, quantity } = req.body
     await Product.findByIdAndUpdate(req.params.id, {itemName,itemId,price,quantity});
     const products = await Product.find().lean();
      res.render("products", { products,role });
@@ -214,6 +242,13 @@ app.get("/admins",isLogedIn,roleAuth("superadmin"), async (req,res) =>{
 // Add new admin
 app.post("/admins", isLogedIn, roleAuth("superadmin"), async (req, res) =>{
     try{
+    const signup=Joi.object({
+            adminName: Joi.string().alphanum().min(4).max(30).required(),
+            adminId: Joi.number().integer().positive().required()
+        }).unknown(true);
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+    
     const roles =req.session.user.role;
     const { adminName, adminId, role, password } = req.body    
     const saltRounds=10
@@ -232,9 +267,18 @@ app.post("/admins", isLogedIn, roleAuth("superadmin"), async (req, res) =>{
 //Edit admins
 app.put("/admins/:id", isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
-        const roles =req.session.user.role;
-   const { adminName, adminId, role, password } = req.body
-    await Admin.findByIdAndUpdate(req.params.id, {adminName,adminId,role,password});
+    
+    const signup=Joi.object({
+            adminName: Joi.string().alphanum().min(4).max(30).required(),
+            adminId: Joi.number().integer().positive().required()
+           
+        }).unknown(true);
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
+    const roles =req.session.user.role;
+    const { adminName, adminId, role } = req.body
+    await Admin.findByIdAndUpdate(req.params.id, {adminName,adminId,role});
     const admins = await Admin.find().lean();
      res.render("admin", { admins, roles});
     }
@@ -274,6 +318,16 @@ app.get("/shoppers",isLogedIn,roleAuth("superadmin"), async (req,res) =>{
 // Add new Customer
 app.post("/shoppers",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+    const signup=Joi.object({
+            customerName: Joi.string().alphanum().min(4).max(30).required(),
+            customerId: Joi.number().integer().positive().required(),
+            email: Joi.string().email().required(),
+            address: Joi.string().max(30).required()
+           
+        }).unknown(true);
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
     const role =req.session.user.role;
     const { customerName, customerId, email, address, password } = req.body
     const saltRounds=10
@@ -292,9 +346,20 @@ app.post("/shoppers",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
 //Edit customers
 app.put("/shoppers/:id",isLogedIn,roleAuth("superadmin"), async (req, res) =>{
     try{
+    const signup=Joi.object({
+            customerName: Joi.string().alphanum().min(4).max(30).required(),
+            customerId: Joi.number().integer().positive().required(),
+            email: Joi.string().email().required(),
+            address: Joi.string().max(30).required()
+           
+        }).unknown(true);
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
     const role =req.session.user.role;
-   const { customerName, customerId, email, address, password} = req.body
-    await Shopper.findByIdAndUpdate(req.params.id, {customerName,customerId,email,address,password});
+   const { customerName, customerId, email, address} = req.body
+
+    await Shopper.findByIdAndUpdate(req.params.id, {customerName,customerId,email,address});
     const customers = await Shopper.find().lean();
      res.render("shopper", { customers,role });
     }
@@ -362,10 +427,16 @@ app.get("/customer/dashboard",isLogedIn,roleAuth("customer"), async (req,res) =>
     //const role= req.cookies.role || "guest";
     
 });
-app.post("/customer/login", async (req,res) =>{
+app.post("/customer/login", loginTrial, async (req,res) =>{
     try{
+    const signup=Joi.object({
+            username: Joi.string().alphanum().min(4).max(30).required(),
+            password: Joi.string().min(6).required()
+        })
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+    
    const {username, password} = req.body;
-
     //console.log(req.body.password)
     const shopper = await Shopper.findOne({customerName: username})
     if (!shopper) return res.render ("customer-login", {error: "Invalid username/password"})
@@ -410,6 +481,14 @@ app.post("/customer/order",isLogedIn,roleAuth("customer"), async (req,res) =>{
 
 app.put("/profile/:id", isLogedIn,roleAuth("customer"),async (req, res) =>{
     try{
+    const signup=Joi.object({
+            email: Joi.string().email().required(),
+            address: Joi.string().max(30).required()
+           
+        }).unknown(true);
+    const{error}= signup.validate(req.body);
+    if (error) return res.status(400).send(error.details[0].message)
+
     const test =req.params.id.trim();
     const custId = new mongoose.Types.ObjectId(test); 
     const{email,address}= req.body

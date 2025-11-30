@@ -194,10 +194,7 @@
           <label>Role</label>
           <input type="text" name="role" id="modalRole" required>
         </div>
-         <div class="form-group">
-          <label>Password</label>
-          <input type="text" name="password" id="modalpass" onclick="generatorPasswordModal()">
-        </div>
+
       <button class="btn-submit" type="submit" id="modalBtn">Update Profile</button>
     </form>
     </div>
@@ -273,7 +270,7 @@
     document.getElementById("modalItem").value = adminName
     document.getElementById("modalItemId").value = adminId
     document.getElementById("modalRole").value = role
-    document.getElementById("modalpass").value = password
+    
     
     document.getElementById("modalForm").action = "/admins/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
@@ -282,13 +279,13 @@
   function generatorPassword(){ 
   console.log("got to generation")
     const input=document.getElementById("password")
-    
-    //if (input.value.trim() !=="") return;
-    const length=6
-    const chars= 'abcdefghijklmnopqrstuvwxyz123456789'
+    const length=8
+    const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password was smaller 
     let password= ''
+    const array= new Uint32Array(length)
+    window.crypto.getRandomValues(array)
     for(let i=0; i<length; i++){
-      password += chars.charAt(Math.floor(Math.random()*chars.length))
+      password += chars[array[i]% chars.length]
     }
       console.log(password)
 
