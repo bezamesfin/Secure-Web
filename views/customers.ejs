@@ -7,7 +7,6 @@
   <style>
     body {
       background: #f4f6f9;
-      
     }
     .container {
       max-width: 900px;
@@ -21,26 +20,21 @@
       border-radius: 3px;
       margin-bottom: 20px;
     }
-  
-    /* ---- FORM CARD ---- */
     .form-card {
       background: #fff;
       padding: 20px;
       border-radius: 3px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      display: none;          /* hidden by default */
+      display: none;         
     }
-
     .form-card h3 {
       margin-top: 0;
       font-size: 18px;
       color: #222;
       margin-bottom: 12px;
     }
-
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; margin-bottom: 6px; }
-
     input, select {
       width: 100%;
       padding: 10px;
@@ -48,7 +42,6 @@
       border-radius: 3px;
       font-size: 14px;
     }
-
     .btn-submit {
       padding: 10px 14px;
       background: #000000;
@@ -57,20 +50,16 @@
       border-radius: 3px;
       cursor: pointer;
     }
-
-    /* ---- TABLE STYLING ---- */
     .table-wrap {
       background: #fff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     }
-
     table.simple {
       width: 100%;
       border-collapse: collapse;
     }
-
     table.simple th,
     table.simple td {
       padding: 12px 10px;
@@ -78,11 +67,9 @@
       font-size: 14px;
       text-align: left;
     }
-
     table.simple thead {
       background: #f4f6fb;
     }
-
     .btn-view {
       padding: 6px 10px;
       background: #000000;
@@ -92,58 +79,47 @@
       cursor: pointer;
     }
     .modal-bg {
-    display: none;                      /* THIS hides the modal initially */
+    display: none;                      /* hides the modal initially */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);        /* dim background */
-    justify-content: center;            /* center modal horizontally */
-    align-items: center;                /* center vertically */
-    z-index: 9999;                      /* above page */
-}
-
-/* The popup box */
-.modal-box {
+    background: rgba(0,0,0,0.5);        
+    justify-content: center;            
+    align-items: center;                
+    z-index: 9999;                      
+    }
+    .modal-box {
     background: white;
     padding: 20px;
     width: 350px;
     border-radius: 10px;
     position: relative;
     box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-}
-
-/* Close button */
-.close-btn {
+    }
+    .close-btn {
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
     font-size: 22px;
     font-weight: bold;
-}
+    }
   </style>
 </head>
 
 <body>
-
 <div class="container">
-
-  <!-- Toggle button -->
    <div style="margin-right: auto;margin-bottom: 20 px;">
-
-
   <button class="btn-toggle" onclick="editProfile('<%= customer.id%>','<%= customer.email %>','<%= customer.address %>')">Edit Profile</button>
     <button class="btn-toggle" onclick="window.location.href='/customer/logout'">Logout</button>
   </div>
-
 <div style="margin-top: 20px;" >
   <button class="btn-toggle" onclick="showTable2()">Existing Order</button>
   <button class="btn-toggle" onclick="showTable()" style="display:none;" id="backBtn">Home</button>
-
-  <!-- === CREATE ORDER FORM === -->
-  <!-- This is a pop up modal used to edit profile-->
+  
+  <!--modal for updating customer profile-->
    <div id="orderModal" class="modal-bg">
     <div class="modal-box">
         <span class="close-btn" onclick="closeModal()">x</span>
@@ -162,12 +138,9 @@
     </div>
     </div>
 
-
-
-  <!-- === TABLE === -->
+  <!--table for showing products-->
   <div class="table-wrap" id="tableSection">
     <h2>Available Products</h2>
-
     <table class="simple">
       <thead>
         <tr>
@@ -177,7 +150,6 @@
           <th>Action</th>
         </tr>
       </thead>
-
       <tbody>
    <%if (products && products.length >0){%>
     <% products.forEach(product => {%>
@@ -195,8 +167,10 @@
                <form action="/customer/order" method="POST">
                 <input type="hidden" name="productId" value="<%= product._id%>">
                 <input type="hidden" name="productName" value="<%= product.itemName%>">
-                <input type="number" name="quantity" min="1" value="1" style="width: 80px;">
+                <input type="number" name="quantity" min="1" style="width: 80px;">
+                <% if (product.quantity > 0){ %>
                 <button class="btn-submit" type="submit">Order</button>
+                <% } %>
                 </form>
               </td>
             </tr>
@@ -214,10 +188,9 @@
     </table>
   </div>
 
- 
+  <!--table for showing orders-->
   <div class="table-wrap" id="tableOrder" style="display: none">
     <h2>My Orders</h2>
-
     <table class="simple">
       <thead>
         <tr>
@@ -226,7 +199,6 @@
           <th>Status</th>
         </tr>
       </thead>
-
       <tbody>
    <%if (orders && orders.length >0){%>
     <% orders.forEach(order => {%>
@@ -243,41 +215,39 @@
             </td>
           </tr>
           <%}%>
-
       </tbody>
-
     </table>
   </div>
-
 </div>
 </div>
 
 
-<!-- TOGGLE SCRIPT -->
+
 <script>
+ // function for showing orders table
   function showTable2() {
-    document.getElementById("tableOrder").style.display = "block";
+    document.getElementById("tableOrder").style.display = "block"; 
     document.getElementById("tableSection").style.display = "none";
     document.getElementById("backBtn").style.display = "inline-block";
   }
 
+   //function for showing Products table
   function showTable() {
     document.getElementById("tableOrder").style.display = "none";
     document.getElementById("tableSection").style.display = "block";
     document.getElementById("backBtn").style.display = "none";
   }
-  function editProfile(id,email,address){ 
-    console.log(id);
-    
+
+   //function for showing modal used for updating profile
+  function editProfile(id,email,address){    
     document.getElementById("modalItem").value = email
     document.getElementById("modalItemId").value = address
-
-    
     document.getElementById("modalForm").action = "/profile/"+id+"?_method=put";
-
     document.getElementById("orderModal").style.display = "flex";
 
   }
+
+  //function for closing modal used for updating profile
     function closeModal(){ 
     document.getElementById("orderModal").style.display = "none";
 

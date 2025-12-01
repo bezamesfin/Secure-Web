@@ -6,8 +6,7 @@
 
   <style>
     body {
-      background: #f4f6f9;
-      
+      background: #f4f6f9; 
     }
     .container {
       max-width: 900px;
@@ -21,26 +20,21 @@
       border-radius: 3px;
       margin-bottom: 20px;
     }
-  
-    /* ---- FORM CARD ---- */
     .form-card {
       background: #fff;
       padding: 20px;
       border-radius: 3px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      display: none;          /* hidden by default */
+      display: none;        
     }
-
     .form-card h3 {
       margin-top: 0;
       font-size: 18px;
       color: #222;
       margin-bottom: 12px;
     }
-
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; margin-bottom: 6px; }
-
     input, select {
       width: 100%;
       padding: 10px;
@@ -48,7 +42,6 @@
       border-radius: 3px;
       font-size: 14px;
     }
-
     .btn-submit {
       padding: 10px 14px;
       background: #000000;
@@ -57,20 +50,16 @@
       border-radius: 3px;
       cursor: pointer;
     }
-
-    /* ---- TABLE STYLING ---- */
     .table-wrap {
       background: #fff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     }
-
     table.simple {
       width: 100%;
       border-collapse: collapse;
     }
-
     table.simple th,
     table.simple td {
       padding: 12px 10px;
@@ -78,11 +67,9 @@
       font-size: 14px;
       text-align: left;
     }
-
     table.simple thead {
       background: #f4f6fb;
     }
-
     .btn-view {
       padding: 6px 10px;
       background: #000000;
@@ -92,45 +79,40 @@
       cursor: pointer;
     }
     .modal-bg {
-    display: none;                      /* THIS hides the modal initially */
+    display: none;                      /*hide the modal initially */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);        /* dim background */
-    justify-content: center;            /* center modal horizontally */
-    align-items: center;                /* center vertically */
-    z-index: 9999;                      /* above page */
-}
+    background: rgba(0,0,0,0.5);      
+    justify-content: center;            
+    align-items: center;                
+    z-index: 9999;                    
+    }
 
-/* The popup box */
-.modal-box {
+
+    .modal-box {
     background: white;
     padding: 20px;
     width: 350px;
     border-radius: 10px;
     position: relative;
     box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-}
-
-/* Close button */
-.close-btn {
+    }
+    .close-btn {
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
     font-size: 22px;
     font-weight: bold;
-}
+    }
   </style>
 </head>
-
 <body>
-
 <div class="container">
 
-  <!-- Toggle button -->
    <div style="margin-right: auto;margin-bottom: 20 px;">
   <% if( role === "superadmin"){ %>
   <button class="btn-toggle" onclick="window.location.href='/dashboard/superadmin'">Orders</button>
@@ -143,22 +125,18 @@
   <button class="btn-toggle" onclick="window.location.href='/shoppers'">Shoppers</button>
   <button class="btn-toggle" onclick="window.location.href='/logout'">Logout</button>
   </div>
-
 <div style="margin-top: 20px;" >
   <button class="btn-toggle" onclick="showForm()">Add New Customer</button>
   <button class="btn-toggle" onclick="showTable()" style="display:none;" id="backBtn">Back to Customers</button>
 
-  <!-- === CREATE ORDER FORM === -->
+  <!-- === customer creation form === -->
   <div class="form-card" id="orderForm">
     <h3>Register New customer</h3>
-
     <form action="/shoppers" method="POST">
-
       <div class="form-group">
         <label>Customer Name</label>
         <input type="text" name="customerName" required>
       </div>
-
         <div class="form-group">
           <label>Customer ID</label>
           <input type="number" name="customerId" required>
@@ -175,11 +153,11 @@
           <label>Password</label>
           <input type="text" name="password" id="password" onclick="generatorPassword()">
         </div>
-
       <button class="btn-submit" type="submit">Add Customer</button>
     </form>
   </div>
-  <!-- This is a pop up modal used to edit data-->
+
+  <!-- pop up modal used to edit customer data-->
    <div id="orderModal" class="modal-bg">
     <div class="modal-box">
         <span class="close-btn" onclick="closeModal()">x</span>
@@ -201,18 +179,14 @@
           <label>Address</label>
           <input type="text" name="address" id="modalAddress" required>
         </div>
-
       <button class="btn-submit" type="submit" id="modalBtn">Edit Customer</button>
     </form>
     </div>
     </div>
 
-
-
-  <!-- === TABLE === -->
+  <!-- === customers table === -->
   <div class="table-wrap" id="tableSection">
     <h2>Customers</h2>
-
     <table class="simple">
       <thead>
         <tr>
@@ -254,39 +228,41 @@
             </td>
           </tr>
           <%}%>
-
       </tbody>
-
     </table>
   </div>
 </div>
 </div>
 
 
-<!-- TOGGLE SCRIPT -->
+
 <script>
+
+  //function for showing customer creation form
   function showForm() {
     document.getElementById("orderForm").style.display = "block";
     document.getElementById("tableSection").style.display = "none";
     document.getElementById("backBtn").style.display = "inline-block";
   }
-
+ 
+  //function for showing customers table 
   function showTable() {
     document.getElementById("orderForm").style.display = "none";
     document.getElementById("tableSection").style.display = "block";
     document.getElementById("backBtn").style.display = "none";
   }
+
+  //function for showing modal
   function editCustomer(id, customerName, customerId, email, address, password){ 
     document.getElementById("modalItem").value = customerName
     document.getElementById("modalItemId").value = customerId
     document.getElementById("modalEmail").value = email
     document.getElementById("modalAddress").value = address
-
-  
     document.getElementById("modalForm").action = "/shoppers/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
 
   }
+  //function for closing modal
     function closeModal(){ 
     document.getElementById("orderModal").style.display = "none";
 
@@ -297,10 +273,9 @@
     
     */
 function generatorPassword(){ 
- 
     const input=document.getElementById("password")
-    const length=8 // The length for the week algorithm was only 6 making the password shorter
-    const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password was smaller 
+    const length=8 // The length for the generated password
+    const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password
     let password= ''
     const array= new Uint32Array(length)
     window.crypto.getRandomValues(array)
@@ -308,15 +283,11 @@ function generatorPassword(){
 
       password += chars[array[i]% chars.length]
     }
-      console.log(password)
-
     input.value=password;
     input.readOnly=true;
-    
-
   }
+  
   function generatorPasswordModal(){ 
- 
     const input=document.getElementById("modalPassword")
     input.value=''
     const chars= 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz123456789!@#$%^&*' // the character set used for generating the password was smaller 
@@ -326,12 +297,8 @@ function generatorPassword(){
     for(let i=0; i<length; i++){
       password += chars[array[i]% chars.length]
     }
-      console.log(password)
-
     input.value=password;
     input.readOnly=true;
-    
-
   }
 </script>
 

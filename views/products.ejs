@@ -3,11 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <title>Products</title>
-
   <style>
     body {
       background: #f4f6f9;
-      
     }
     .container {
       max-width: 900px;
@@ -21,26 +19,21 @@
       border-radius: 3px;
       margin-bottom: 20px;
     }
-  
-    /* ---- FORM CARD ---- */
     .form-card {
       background: #fff;
       padding: 20px;
       border-radius: 3px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-      display: none;          /* hidden by default */
+      display: none;        
     }
-
     .form-card h3 {
       margin-top: 0;
       font-size: 18px;
       color: #222;
       margin-bottom: 12px;
     }
-
     .form-group { margin-bottom: 14px; }
     .form-group label { display: block; margin-bottom: 6px; }
-
     input, select {
       width: 100%;
       padding: 10px;
@@ -48,7 +41,6 @@
       border-radius: 3px;
       font-size: 14px;
     }
-
     .btn-submit {
       padding: 10px 14px;
       background: #000000;
@@ -57,20 +49,16 @@
       border-radius: 3px;
       cursor: pointer;
     }
-
-    /* ---- TABLE STYLING ---- */
     .table-wrap {
       background: #fff;
       padding: 20px;
       border-radius: 8px;
       box-shadow: 0 6px 18px rgba(0,0,0,0.06);
     }
-
     table.simple {
       width: 100%;
       border-collapse: collapse;
     }
-
     table.simple th,
     table.simple td {
       padding: 12px 10px;
@@ -78,11 +66,9 @@
       font-size: 14px;
       text-align: left;
     }
-
     table.simple thead {
       background: #f4f6fb;
     }
-
     .btn-view {
       padding: 6px 10px;
       background: #000000;
@@ -92,51 +78,44 @@
       cursor: pointer;
     }
     .modal-bg {
-    display: none;                      /* THIS hides the modal initially */
+    display: none;                      /*hide the modal initially */
     position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);        /* dim background */
-    justify-content: center;            /* center modal horizontally */
-    align-items: center;                /* center vertically */
-    z-index: 9999;                      /* above page */
-}
+    background: rgba(0,0,0,0.5);        
+    justify-content: center;           
+    align-items: center;               
+    z-index: 9999;                      
+    }
 
-/* The popup box */
-.modal-box {
+    .modal-box {
     background: white;
     padding: 20px;
     width: 350px;
     border-radius: 10px;
     position: relative;
     box-shadow: 0 5px 20px rgba(0,0,0,0.25);
-}
-
-/* Close button */
-.close-btn {
+    }
+    .close-btn {
     position: absolute;
     top: 10px;
     right: 15px;
     cursor: pointer;
     font-size: 22px;
     font-weight: bold;
-}
+    }
   </style>
 </head>
-
 <body>
-
 <div class="container">
 
-  <!-- Toggle button -->
-   <div style="margin-right: auto;margin-bottom: 20 px;">
-    
+  <div style="margin-right: auto;margin-bottom: 20 px;">
   <% if( role === "superadmin"){ %>
   <button class="btn-toggle" onclick="window.location.href='/dashboard/superadmin'">Orders</button>
     <%}%>
- <% if( role === "admin"){ %>
+  <% if( role === "admin"){ %>
   <button class="btn-toggle" onclick="window.location.href='/dashboard/admin'">Orders</button>
     <%}%>
   <button class="btn-toggle" onclick="window.location.href='/products'">Products</button>
@@ -152,17 +131,14 @@
   <button class="btn-toggle" onclick="showForm()">Add New Product</button>
   <button class="btn-toggle" onclick="showTable()" style="display:none;" id="backBtn">Back to Product</button>
 
-  <!-- === CREATE ORDER FORM === -->
+  <!-- === product creation form === -->
   <div class="form-card" id="orderForm">
     <h3>Create New product</h3>
-
     <form action="/products" method="POST">
-
       <div class="form-group">
         <label>Product Name</label>
         <input type="text" name="itemName" required>
       </div>
-
         <div class="form-group">
           <label>Product ID</label>
           <input type="number" name="itemId" required>
@@ -175,12 +151,11 @@
           <label>Stock Quantity</label>
           <input type="number" name="quantity" required>
         </div>
-    
-
       <button class="btn-submit" type="submit">Add Product</button>
     </form>
   </div>
-  <!-- This is a pop up modal used to edit data-->
+
+  <!-- pop up modal used to edit product data-->
    <div id="orderModal" class="modal-bg">
     <div class="modal-box">
         <span class="close-btn" onclick="closeModal()">x</span>
@@ -207,12 +182,9 @@
     </div>
     </div>
 
-
-
-  <!-- === TABLE === -->
+  <!-- === products table === -->
   <div class="table-wrap" id="tableSection">
     <h2>Products</h2>
-
     <table class="simple">
       <thead>
         <tr>
@@ -223,7 +195,6 @@
           <th>Actions</th>
         </tr>
       </thead>
-
       <tbody>
    <%if (products && products.length >0){%>
     <% products.forEach(product => {%>
@@ -247,42 +218,43 @@
 <%} else { %>
           <tr>
             <td colspan="4" style="text-align:center; padding:14px; color:#666;">
-              No orders found.
+              No Products found.
             </td>
           </tr>
           <%}%>
-
       </tbody>
-
     </table>
   </div>
 </div>
 </div>
 
-
-<!-- TOGGLE SCRIPT -->
 <script>
+  //function for showing admin creation form
   function showForm() {
     document.getElementById("orderForm").style.display = "block";
     document.getElementById("tableSection").style.display = "none";
     document.getElementById("backBtn").style.display = "inline-block";
   }
 
+  //function for showing product table
   function showTable() {
     document.getElementById("orderForm").style.display = "none";
     document.getElementById("tableSection").style.display = "block";
     document.getElementById("backBtn").style.display = "none";
   }
+
+  //function for showing product editing modal
   function editProduct(id, itemName, itemId, price,quantity){ 
     document.getElementById("modalItem").value = itemName
     document.getElementById("modalItemId").value = itemId
     document.getElementById("modalPrice").value = price
     document.getElementById("modalQuantity").value = quantity
-    
     document.getElementById("modalForm").action = "/products/" +id+"?_method=put";
     document.getElementById("orderModal").style.display = "flex";
 
   }
+
+  //function for closing modal
     function closeModal(){ 
     document.getElementById("orderModal").style.display = "none";
 
