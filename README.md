@@ -69,7 +69,7 @@ This is a databse sedder file for initializing the application for first time de
 
 ### Clone the repository
 
-git clone https://github.com/bezamesfin/Secure-Web
+git clone https://github.com/bezamesfin/Secure-Web.git
 
 ### Environment Installtion
 
