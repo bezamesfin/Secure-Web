@@ -7,29 +7,28 @@ This project is a simple e-commerce web applicatin designed to demonstrate how i
 
 The core functional features of the system are:  
  ### 1.	Customer functional requirement
-    - login to the system using valid credentials
-    - View product lists with price and availability 
-    - Place order for available product
-    - View existing orders they have already placed 
-    - Update profile data (email and physical address) 
+    - View available products
+    - Place order 
+    - View existing orders 
+    - Update profile
  ### 2.	Super Administrator functional requirements
-    - Update customer order status 
-    - Remove customer orders from the application 
-    - Add new product with the appropriate detail (name, price, availability)
-    - Edit product detail
-    - Remove products from the system
-    - Register new administrator and customer to access the system
-    - Edit administrator and customer detail
-    - Delete customer and administrator account from the system.
+    - Update order status 
+    - Delete orders 
+    - Register new product 
+    - Edit product information
+    - Remove products
+    - Register new administrator and customer accounts
+    - Update customer and administrator detail
+    - Remove customer and administrator account
 ### 3.	Administrator Functional requirements 
-    - Update customer’s order status 
-    - Remove customer orders from the application 
-    - Add new product with the appropriate detail (name, price, availability)
-    - Edit product detail
-    - Remove product from the system
+    - Edit order status 
+    - Delete orders 
+    - Add new product
+    - Update product detail
+    - Delete product 
 ### 4.	System Functional Requirement
-    - Update stock levels after customers place orders.
-    - Verify the availability of product before an order is processed by a customer
+    - Update stock levels during order placement.
+    - Check availability of product before an order is registered
     
  #### Security Objectives of the system are:
         1.	Prevent NoSQL injection
@@ -82,6 +81,8 @@ git clone https://github.com/bezamesfin/Secure-Web.git
     - Start the server using the server.js file
 
 ## Usage guidlines
+
+The admin portal is found on /login while the customer portal is on /customer/login
 
 ### Customer Feature
     - Register a new account
