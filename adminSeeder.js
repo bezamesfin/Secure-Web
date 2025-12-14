@@ -24,11 +24,13 @@ const seedAdmins = async () => {
       password += chars[array[i]% chars.length] // convert the random numbers to chars based on the defined charset
     }
     const hash= await bcrypt.hash(password, 10) // hash the generate random password
+    
+    await User.deleteMany({role: "superadmin"}); // delete existing super admin users
 
     const admin = [
       {
-        adminName: "superAdmin",
-        adminId: 0001,
+        adminName: "superAdmin1",
+        adminId: 1,
         role: "superadmin",
         password: hash
       }

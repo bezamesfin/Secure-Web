@@ -5,7 +5,7 @@ const methodOverride = require('method-override');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const bcrypt = require('bcrypt');
-const rateLimit = require('express-rate-limit')
+
 const Joi=require('joi');
 const crypto= require("crypto");
 const Admin = require("./models/admin");
@@ -13,8 +13,8 @@ const Shopper = require("./models/shopper");
 const Product = require("./models/product");
 const Order = require("./models/order");
 const {isLogedIn, roleAuth} = require("./auth");
-//const { error } = require('console');
 
+const rateLimit = require('express-rate-limit')
 const loginTrial = rateLimit({max:3,windowMs: 5 * 60 * 1000,message:"Too many Login Attempt!"}) // limit user login to 3 attampts and reset counter after 5 minute
 
 const app = express();
