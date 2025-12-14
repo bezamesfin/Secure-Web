@@ -75,7 +75,7 @@ git clone https://github.com/bezamesfin/Secure-Web.git
     - The application uses MongoDB, you need to install MongoDB version 7.0.25
     - Install Node.js runtime environment
     -  Install the following libraries using NPM package manager
-        - mongoose, cookie-parser, bcrypt, joi, express-rate-limit, express-session, method-override
+        - mongoose, cookie-parser, bcrypt, joi, express-rate-limit, express-session, method-override, EJS
     - After successful installation run the adminSeeder.js
     - Successful execution of the seeder will give you the super admin credential on the console
     - Start the server using the server.js file
